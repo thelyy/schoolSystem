@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybaits.rog//DTD Config 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.lyy.eu.mapper.AddInfoMapper">
+
+    <select id="selectAddInfo" resultType="com.lyy.eu.pojo.AddInfo" parameterType="Integer">
+        select * from addinfo where atid = #{atid} and status = 1
+    </select>
+
+    <select id="findAddinfoEnd" resultType="com.lyy.eu.pojo.AddInfo" parameterType="Integer">
+        select  aaid, b.atid, starttime, endtime, status from addinfo a,atimeinfo b
+        where a.atid=b.atid and a.atid = #{atid} order by aaid limit ${page}, ${rows}
+    </select>
+
+    <select id="findTotal" resultType="Integer" parameterType="com.lyy.eu.pojo.PageInfo">
+        select count(1) from addinfo where atid = #{atid}
+    </select>
+
+    <insert id="addAdd" parameterType="com.lyy.eu.pojo.AddInfo">
+        insert into addinfo values (0,#{atid},#{starttime},#{endtime},1)
+    </insert>
+
+<!--    <update id="updateAdd" parameterType="com.lyy.eu.pojo.AddInfo">-->
+<!--        update addinfo set starttime = #{starttime},endtime = #{endtime} where aaid=#{aaid}-->
+<!--    </update>-->
+
+    <select id="findStatus" resultType="com.lyy.eu.pojo.AddInfo">
+        select * from addinfo where aaid = #{aaid} and status = 1
+    </select>
+
+    <select id="findAlladd" resultType="com.lyy.eu.pojo.AddInfo">
+        select * from addinfo
+    </select>
+
+    <delete id="delAdd" parameterType="Integer">
+        delete from addinfo where aaid=#{aaid};
+    </delete>
+
+    <update id="updateStatus" parameterType="com.lyy.eu.pojo.AddInfo">
+        update addinfo set status = 0 where aaid=#{aaid}
+    </update>
+</mapper>

@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybaits.rog//DTD Config 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.lyy.eu.mapper.AdminInfoMapper">
+
+    <update id="updateAdmin" parameterType="com.lyy.eu.pojo.AdminInfo">
+        update admininfo set nickName = #{nickName}, aname = #{aname},
+        aname = #{aname},tel = #{tel},status = #{status} where aid=#{aid}
+    </update>
+
+    <delete id="delAdmin" parameterType="com.lyy.eu.pojo.AdminInfo">
+        delete from admininfo where aid=#{aid} and status=0;
+    </delete>
+
+    <select id="findAdminSend" resultType="com.lyy.eu.pojo.AdminInfo" parameterType="com.lyy.eu.pojo.PageInfo">
+        select * from admininfo order by aid limit ${page}, ${rows}
+    </select>
+
+    <select id="findTotal" resultType="Integer" parameterType="com.lyy.eu.pojo.PageInfo">
+        select count(1) from admininfo
+    </select>
+
+    <select id="loginAdminInfo" parameterType="com.lyy.eu.pojo.AdminInfo" resultType="com.lyy.eu.pojo.AdminInfo">
+        select * from admininfo where tel= #{tel} and pwd=#{pwd} and status=1;
+    </select>
+
+    <update id="updatePwd" parameterType="com.lyy.eu.pojo.AdminInfo">
+        update admininfo set pwd = #{pwd} where tel=#{tel}
+    </update>
+
+    <select id="selectAdmin" parameterType="Integer" resultType="com.lyy.eu.pojo.AdminInfo">
+        select * from admininfo where aid = #{aid}
+    </select>
+</mapper>

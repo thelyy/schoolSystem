@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybaits.rog//DTD Config 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.lyy.eu.mapper.OrderInfoMapper">
+
+    <select id="selectAllend" parameterType="com.lyy.eu.pojo.PageInfo" resultType="com.lyy.eu.pojo.OrderInfo">
+        select oid,a.aid,aname,m.mid,nickName,g.gid,gname,time,starttime,endtime,o.status
+        from orderinfo o,memberinfo m,addressinfo a,goodsinfo g, addinfo ad, atimeinfo ·at·
+        where o.aid=a.aid and o.mid=m.mid and g.gid=o.gid and o.aaid = ad.aaid
+        and ad.atid = ·at·.atid order by oid limit ${page}, ${rows}
+    </select>
+
+    <select id="selectAll" parameterType="com.lyy.eu.pojo.PageInfo" resultType="com.lyy.eu.pojo.OrderInfo">
+        select oid,aname,gname,time,starttime,endtime, o.status from orderinfo o,memberinfo m,addressinfo a,goodsinfo g, addinfo ad, atimeinfo ·at·
+        where o.aid=a.aid and o.mid=m.mid and g.gid=o.gid and o.aaid = ad.aaid
+        and ad.atid = ·at·.atid and o.mid = #{mid} order by oid limit ${page}, ${rows}
+    </select>
+
+    <select id="findTotal" resultType="Integer" parameterType="com.lyy.eu.pojo.PageInfo">
+        select count(1) from orderinfo where 1 = 1
+        <if test="mid != null and mid != ''">
+            and mid = #{mid}
+        </if>
+    </select>
+
+    <insert id="addOrder" parameterType="com.lyy.eu.pojo.OrderInfo">
+        insert into orderinfo values (0,#{aid},#{mid},#{gid},#{aaid}, now(), 1);
+    </insert>
+
+</mapper>
+

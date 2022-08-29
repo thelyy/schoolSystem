@@ -1,0 +1,168 @@
+<table id="address_data" data-options="fit:true"></table>
+
+<script>
+var address_status_obj = [{id:0, name:"下架"}, {id:1, name:"在架"}]
+var address_index = undefined; //用来记录当前正在被编辑的行
+var address_op;
+var address_info;
+
+var address_obj = $('#address_data').datagrid({
+	url:'../../../findAddressSend',
+	fitColumns: true,
+	striped: true,
+	loadMsg:"数据加载中...",
+	pagination: true,
+	rownumbers: true,
+	pageSize: 5,
+	singleSelect: true,
+	pageList: [2,5,10,20,30,40,50,100],
+	sortName: "aid",
+	remoteSort: false,
+	columns:[[
+		{field:'aid',title:'场地类型编号',width:100,align:'center', sortable:"true"},
+		{field:'aname',title:'场地类型名称',width:100,align:'center', editor:{type:"text", options:{required:true}}},
+	]],
+	toolbar: [{
+		iconCls: 'icon-add',
+		text:"添加",
+		handler: function() {
+			address_op = "add";
+			address_info = "添加";
+			
+			if (address_index != undefined) { // 说明正在被编辑的行
+				return;
+			}
+			//在表格的最前面插入一行
+			address_obj.datagrid('insertRow',{index: 0, row: {}});
+			address_index = 0;
+			address_obj.datagrid('beginEdit', address_index); // 开始编辑指定行
+		}
+	},'-',{
+        iconCls: 'icon-application-delete',
+        text: "删除",
+        handler: function() {
+            address_op = "del";
+            address_info = "删除";
+
+            //获取选中的行
+            var row = address_obj.datagrid('getSelected');
+            if (row == null) { //说明没有被选中的行
+                $.messager.show({title:'温馨提示', msg:'请选择您要删除的类型...', timeout:2000,showType:'slide'});
+                return;
+            }
+
+            //获取选中的行的索引
+            address_index = address_obj.datagrid('getRowIndex', row);
+            //console.log(row)
+
+            $.post("../../../delAddress", row, data=> {
+                if(data.code == 200) {
+                    $.messager.show({title:'成功提示', msg:'方案场地类型删除成功...', timeout:2000,showType:'slide'});
+                    //刷新页面数据
+                    address_obj.datagrid("reload"); //重新加载数据，目的是重新分页
+                }else{
+                    //如果没有成功，则需要回滚数据
+                    address_obj.datagrid("rejectChanges");
+                    $.messager.show({title:'失败提示', msg:'方案场地类型已被使用，请先删除绑定的方案...', timeout:2000,showType:'slide'});
+                }
+                row = null;
+                address_index = undefined;
+            }, "json");
+            row = null;
+            address_index = undefined;
+
+        }
+    },'-',{
+		iconCls: 'icon-edit',
+		text: "修改",
+		handler: function() {
+			address_op = "update";
+			address_info = "修改";
+			
+			//判断有没有正在被编辑的行
+			if (address_index != undefined) { //说明有正在被编辑的行
+				return
+			}
+			
+			//获取选中的行
+			var row = address_obj.datagrid('getSelected');
+			if (row == null) { //说明没有被选中的行
+				$.messager.show({title:'温馨提示', msg:'请选择您要修改的商品类型...', timeout:2000,showType:'slide'});
+			    return;
+			}
+			
+			//获取选中的行的索引
+			address_index = address_obj.datagrid('getRowIndex', row);
+			
+			//开启编辑
+			address_obj.datagrid('beginEdit', address_index);
+		}
+	},'-',{
+		iconCls: 'icon-save',
+		text: "保存",
+		handler: function() {
+            //如果没有被编辑的行，则直接返回
+            if (address_index == undefined) {
+                return;
+            }
+
+            address_obj.datagrid('endEdit', address_index); //先结束编辑
+            var row = address_obj.datagrid("getChanges")[0]; //这个是返回所有被修改的行数据，但是我们这里每次只允许编辑一行，所以我去第一行被修改的数据即可
+
+            if (row == undefined) {
+                address_index = undefined;
+                return;
+            }
+            //此时row是一个Object,那么js中如何在对象中添加属性呢？
+            //row.op = "add"; //row["op"] = "add"
+            row.op = address_op;
+
+            //将这一行数据发送到后台，插入到数据库中
+            //$.post("../../type", row, function(data){}, "json");
+            if (address_op == "add") {
+                $.post("../../../addAddress", row, data => {
+                    if (data.code == 200) {
+                        $.messager.show({title: '成功提示', msg: '方案场地类型添加成功...', timeout: 2000, showType: 'slide'});
+                        //刷新页面数据
+                        address_obj.datagrid("reload"); //重新加载数据，目的是重新分页
+                    } else {
+                        //如果没有成功，则需要回滚数据
+                        address_op.datagrid("rejectChanges");
+                        $.messager.show({title: '失败提示', msg: '方案场地类型添加失败...', timeout: 2000, showType: 'slide'});
+                    }
+                    row = null;
+                    address_index = undefined;
+                }, "json");
+                row = null;
+                address_index = undefined;
+            } else {
+
+                $.post("../../../updateAddress", row, data => {
+                    if (data.code == 200) {
+                        $.messager.show({title: '成功提示', msg: '方案场地类型修改成功...', timeout: 2000, showType: 'slide'});
+                        //刷新页面数据
+                        address_obj.datagrid("reload"); //重新加载数据，目的是重新分页
+                    } else {
+                        //如果没有成功，则需要回滚数据
+                        address_obj.datagrid("rejectChanges");
+                        $.messager.show({title: '失败提示', msg: '该场地类型已被使用，修改失败...', timeout: 2000, showType: 'slide'});
+                    }
+                    row = null;
+                    address_index = undefined;
+                }, "json");
+
+                row = null;
+                address_index = undefined;
+            }
+        }
+	},'-',{
+		iconCls: 'icon-undo',
+		text: "撤销",
+		handler: function() {
+			address_index = undefined;
+			address_obj.datagrid("rejectChanges");
+			
+		}
+	}]
+});
+</script>

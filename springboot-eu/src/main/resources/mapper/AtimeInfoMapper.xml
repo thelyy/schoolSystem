@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybaits.rog//DTD Config 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.lyy.eu.mapper.AtimeInfoMapper">
+
+    <select id="selectAtime" resultType="com.lyy.eu.pojo.AtimeInfo">
+        select * from atimeinfo
+    </select>
+
+    <select id="selectAtid" resultType="com.lyy.eu.pojo.AtimeInfo" parameterType="com.lyy.eu.pojo.AtimeInfo">
+        select * from atimeinfo where `time` = #{time} and gid = #{gid}
+    </select>
+
+    <select id="findAtimeEnd" resultType="com.lyy.eu.pojo.AtimeInfo" parameterType="Integer">
+        select  atid, g.gname, c.aname, time from atimeinfo a,goodsinfo g,addressinfo c
+        where a.gid=g.gid and a.aid=c.aid order by atid limit ${page}, ${rows}
+    </select>
+
+    <select id="findTotal" resultType="Integer" parameterType="com.lyy.eu.pojo.PageInfo">
+        select count(1) from atimeinfo
+    </select>
+
+    <select id="findAtime" parameterType="Integer" resultType="com.lyy.eu.pojo.AtimeInfo">
+        select * from atimeinfo where atid=#{atid}
+    </select>
+
+    <insert id="addAtime" parameterType="com.lyy.eu.pojo.AddInfo" useGeneratedKeys="true" keyProperty="atid">
+        insert into atimeinfo values (0,#{gid},#{aid},#{time});
+    </insert>
+
+<!--    <update id="updateAtime" parameterType="com.lyy.eu.pojo.AddInfo">-->
+<!--        update atimeinfo set aid = #{aid},gid = #{gid},time = #{time} where atid=#{atid}-->
+<!--    </update>-->
+
+    <delete id="delAtime" parameterType="Integer">
+        delete from addinfo where atid=#{atid};
+    </delete>
+
+</mapper>

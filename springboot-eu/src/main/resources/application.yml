@@ -1,0 +1,37 @@
+server:
+  port: 8088
+
+spring:
+
+  mail:
+    default-encoding: UTF-8
+    host: smtp.qq.com
+    username: 2624415549@qq.com
+    password: nzejwexaiktzdjhg
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+            required: true
+  redis:
+    host: 127.0.0.1
+    port: 6379
+
+  datasource:
+    url: jdbc:mysql://localhost:3306/vue-elementui?useSSL=true&useUnicode=true&characterEncoding=utf8
+    username: root
+    password: a
+    driver-class-name: com.mysql.jdbc.Driver
+
+  servlet:
+    multipart:
+      # 设置单个文件大小
+      max-file-size: 50MB
+      #  设置单次请求文件的总大小
+
+
+
+mybatis:
+  mapper-locations: classpath:mapper/*.xml

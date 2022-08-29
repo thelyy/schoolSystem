@@ -1,0 +1,142 @@
+<table id="addinfo_data" data-options="fit:true"></table>
+
+<script>
+var addinfo_status_obj = [{id:0, name:"已使用"}, {id:1, name:"未使用"}]
+var addinfo_index = undefined; //用来记录当前正在被编辑的行
+var addinfo_op;
+var addinfo_info;
+var atid = localStorage.getItem("atid");
+var addinfo_obj = $('#addinfo_data').datagrid({
+	url:'../../../findAddinfoEnd',
+	fitColumns: true,
+	striped: true,
+	loadMsg:"数据加载中...",
+	pagination: true,
+	rownumbers: true,
+	pageSize: 5,
+	singleSelect: true,
+	pageList: [2,5,10,20,30,40,50,100],
+	remoteSort: false,
+    queryParams: {atid: atid},
+	columns:[[
+		{field:'aaid',title:'编号',width:100,align:'center', sortable:"true"},
+        {field:'atid',title:'场地时间编号',width:100,align:'center', sortable:"true"},
+        {field:'starttime',title:'开始时间',width:100,align:'center',editor:{type:"text", options:{required:true}}},
+        {field:'endtime',title:'结束时间',width:100,align:'center',editor:{type:"text", options:{required:true}}},
+        {field:'status',title:'使用状态',width:100,align:'center',sortable:"true", formatter:function(val, row, index){
+                if(val == 0){
+                    return '<font color="red">已使用</font>';
+                } else {
+                    return '<font color="green">未使用</font>';
+                }
+            },editor:{options:{required: true, valueField:"id", textField:"name", data:addinfo_status_obj}}}
+        //传递到后面服务器用的值的属性    显示在界面上给用户看的值属性     这数据来源于那个集合对象
+    ]],
+	toolbar: [{
+        iconCls: 'icon-application-delete',
+        text: "删除",
+        handler: function() {
+            addinfo_op = "del";
+            addinfo_info = "删除";
+
+            //获取选中的行
+            var row = addinfo_obj.datagrid('getSelected');
+            if (row == null) { //说明没有被选中的行
+                $.messager.show({title:'温馨提示', msg:'请选择您要删除的类型...', timeout:2000,showType:'slide'});
+                return;
+            }
+
+            //获取选中的行的索引
+            addinfo_index = addinfo_obj.datagrid('getRowIndex', row);
+            //console.log(row)
+
+            $.post("../../../deladd", row, data=> {
+                if(data.code == 200) {
+                    $.messager.show({title:'成功提示', msg:'方案场地类型删除成功...', timeout:2000,showType:'slide'});
+                    //刷新页面数据
+                    addinfo_obj.datagrid("reload"); //重新加载数据，目的是重新分页
+                }else{
+                    //如果没有成功，则需要回滚数据
+                    addinfo_obj.datagrid("rejectChanges");
+                    $.messager.show({title:'失败提示', msg:'方案场地类型已被使用，请先删除绑定的方案...', timeout:2000,showType:'slide'});
+                }
+                row = null;
+                addinfo_index = undefined;
+            }, "json");
+            row = null;
+            addinfo_index = undefined;
+
+        }
+	},'-',{
+		iconCls: 'icon-save',
+		text: "保存",
+		handler: function() {
+            //如果没有被编辑的行，则直接返回
+            if (addinfo_index == undefined) {
+                return;
+            }
+
+            addinfo_obj.datagrid('endEdit', addinfo_index); //先结束编辑
+            var row = addinfo_obj.datagrid("getChanges")[0]; //这个是返回所有被修改的行数据，但是我们这里每次只允许编辑一行，所以我去第一行被修改的数据即可
+
+            if (row == undefined) {
+                addinfo_index = undefined;
+                return;
+            }
+            //此时row是一个Object,那么js中如何在对象中添加属性呢？
+            //row.op = "add"; //row["op"] = "add"
+            row.op = addinfo_op;
+
+            //将这一行数据发送到后台，插入到数据库中
+            //$.post("../../type", row, function(data){}, "json");
+            if (addinfo_op == "add") {
+                $.post("../../../addAdd", row, data => {
+                    if (data.code == 200) {
+                        $.messager.show({title: '成功提示', msg: '添加成功...', timeout: 2000, showType: 'slide'});
+                        //刷新页面数据
+                        addinfo_obj.datagrid("reload"); //重新加载数据，目的是重新分页
+                    } else {
+                        //如果没有成功，则需要回滚数据
+                        addinfo_op.datagrid("rejectChanges");
+                        $.messager.show({title: '失败提示', msg: '添加失败...', timeout: 2000, showType: 'slide'});
+                    }
+                    row = null;
+                    addinfo_index = undefined;
+                }, "json");
+                row = null;
+                addinfo_index = undefined;
+            } else {
+
+                $.post("../../../updateAdd", row, data => {
+                    if (data.code == 200) {
+                        $.messager.show({title: '成功提示', msg: '修改成功...', timeout: 2000, showType: 'slide'});
+                        //刷新页面数据
+                        addinfo_obj.datagrid("reload"); //重新加载数据，目的是重新分页
+                    } else if(data.code == 500){
+                        //如果没有成功，则需要回滚数据
+                        addinfo_obj.datagrid("rejectChanges");
+                        $.messager.show({title: '失败提示', msg: '该时间段已预订，修改失败...', timeout: 2000, showType: 'slide'});
+                    }else{
+                        //如果没有成功，则需要回滚数据
+                        addinfo_obj.datagrid("rejectChanges");
+                        $.messager.show({title: '失败提示', msg: '修改失败...', timeout: 2000, showType: 'slide'});
+                    }
+                    row = null;
+                    addinfo_index = undefined;
+                }, "json");
+
+                row = null;
+                addinfo_index = undefined;
+            }
+        }
+	},'-',{
+		iconCls: 'icon-undo',
+		text: "撤销",
+		handler: function() {
+			addinfo_index = undefined;
+			addinfo_obj.datagrid("rejectChanges");
+			
+		}
+	}]
+});
+</script>

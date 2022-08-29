@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Insert title here</title>
+</head>
+<link rel="stylesheet" href="css/index.css">
+<script type="text/javascript" src="js/vue.js"></script>
+<script type="text/javascript" src="js/axios.js"></script>
+<script type="text/javascript" src="js/qs.js"></script>
+<script  type="text/javascript" src="style/js/jquery-1.7.1.min.js"></script> 
+<body>
+<div  id="vhtml">
+	<h2>商品内容</h2>
+	<form>
+		请输入查询的关键字<input type="text" name="keyword" id="keyword"  />
+		<a class="button" data="buySubmit" rel="nofollow" href="javascript:void(0)" @click="addlove" class="xqbuy-a">查询</a>
+	</form>
+
+	<table>
+     <thead>
+<tr>
+     <th>店铺名称</th>
+     <th>商品名称</th>
+     <th>商品描述</th>
+   
+</tr>
+</thead>
+
+     <tbody >
+     
+     	<tr v-for="Goods in Goods" >
+     		<td v-html="Goods.sname">{{Goods.sname}}<td>
+     		<td v-html="Goods.gname">{{Goods.gname}}</td>
+     		<td v-html="Goods.detail">{{Goods.detail}}</td>
+     	</tr>
+    
+     </tbody>
+     </table>
+<div class="paging"></div>
+</div>
+<script src="js/index.js"></script>
+<script type="text/javascript">
+var keyword = sessionStorage.getItem("keyword");
+console.log(keyword);
+$("#keyword").val(keyword);
+
+
+let goods_data =  new Vue({
+	el: "#vhtml",
+	data: {
+		Goods: []
+	},
+	methods:{
+		 addlove(){ 
+				axios.post("Lucene", qs.stringify({op: "finds",keyword: keyword})).then(rt => {
+					if (rt.status == 200) {
+						this.Goods = rt.data.data;
+		  }
+	   })
+     }
+   }
+})
+
+</script>
+</body>
+</html>

@@ -1,0 +1,183 @@
+<table id="atimeinfo_data" data-options="fit:true"></table>
+<script>
+var atimeinfo_status_obj = [{id:0, name:"未使用"}, {id:1, name:"已使用"}]
+var atimeinfo_index = undefined; //用来记录当前正在被编辑的行
+var atimeinfo_op;
+var atimeinfo_info;
+
+
+function toInfo(row){
+    window.parent.addTab("场地使用信息", "addinfo.html", "icon-report-edit", 0);
+    localStorage.setItem("atid", row)
+}
+
+var atimeinfo_obj = $('#atimeinfo_data').datagrid({
+	url:'../../../findAtimeEnd',
+	fitColumns: true,
+	striped: true,
+	loadMsg:"数据加载中...",
+	pagination: true,
+	rownumbers: true,
+	pageSize: 5,
+	singleSelect: true,
+	pageList: [2,5,10,20,30,40,50,100],
+	sortName: "atid",
+	remoteSort: false,
+	columns:[[
+		{field:'atid',title:'编号',width:100,align:'center', sortable:"true"},
+        {field:'aname',title:'场地名称',width:100,align:'center', sortable:"true",editor:{type:"text", options:{required:true}}},
+        {field:'gname',title:'方案名称',width:100,align:'center', sortable:"true",editor:{type:"text", options:{required:true}}},
+        {field:'time',title:'时间',width:100,align:'center', sortable:"true",editor:{type:"text", options:{required:true}}},
+        {field:'detail',title:'场地详情',width:100,align:'center', formatter:function(val, row, index){
+                return '<a class="alink" onclick="toInfo('+ row.atid + ')" data-icon="icon-report-edit" data-link="addinfo.html" iframe="0">进入详情</a>';
+            },editor:{options:{required: true, valueField:"id", textField:"name"}}}
+        //传递到后面服务器用的值的属性    显示在界面上给用户看的值属性     这数据来源于那个集合对象
+    ]],
+	toolbar: [{
+		iconCls: 'icon-add',
+		text:"添加",
+		handler: function() {
+			atimeinfo_op = "add";
+			atimeinfo_info = "添加";
+			
+			if (atimeinfo_index != undefined) { // 说明正在被编辑的行
+				return;
+			}
+			//在表格的最前面插入一行
+			atimeinfo_obj.datagrid('insertRow',{index: 0, row: {}});
+			atimeinfo_index = 0;
+			atimeinfo_obj.datagrid('beginEdit', atimeinfo_index); // 开始编辑指定行
+		}
+	},'-',{
+        iconCls: 'icon-application-delete',
+        text: "删除",
+        handler: function() {
+            atimeinfo_op = "del";
+            atimeinfo_info = "删除";
+
+            //获取选中的行
+            var row = atimeinfo_obj.datagrid('getSelected');
+            if (row == null) { //说明没有被选中的行
+                $.messager.show({title:'温馨提示', msg:'请选择您要删除的类型...', timeout:2000,showType:'slide'});
+                return;
+            }
+
+            //获取选中的行的索引
+            atimeinfo_index = atimeinfo_obj.datagrid('getRowIndex', row);
+            //console.log(row)
+
+            $.post("../../../delatimeinfo", row, data=> {
+                if(data.code == 200) {
+                    $.messager.show({title:'成功提示', msg:'方案场地类型删除成功...', timeout:2000,showType:'slide'});
+                    //刷新页面数据
+                    atimeinfo_obj.datagrid("reload"); //重新加载数据，目的是重新分页
+                }else{
+                    //如果没有成功，则需要回滚数据
+                    atimeinfo_obj.datagrid("rejectChanges");
+                    $.messager.show({title:'失败提示', msg:'方案场地类型已被使用，请先删除绑定的方案...', timeout:2000,showType:'slide'});
+                }
+                row = null;
+                atimeinfo_index = undefined;
+            }, "json");
+            row = null;
+            atimeinfo_index = undefined;
+
+        }
+    },'-',{
+		iconCls: 'icon-edit',
+		text: "修改",
+		handler: function() {
+			atimeinfo_op = "update";
+			atimeinfo_info = "修改";
+			
+			//判断有没有正在被编辑的行
+			if (atimeinfo_index != undefined) { //说明有正在被编辑的行
+				return
+			}
+			
+			//获取选中的行
+			var row = atimeinfo_obj.datagrid('getSelected');
+			if (row == null) { //说明没有被选中的行
+				$.messager.show({title:'温馨提示', msg:'请选择您要修改的商品类型...', timeout:2000,showType:'slide'});
+			    return;
+			}
+			
+			//获取选中的行的索引
+			atimeinfo_index = atimeinfo_obj.datagrid('getRowIndex', row);
+			
+			//开启编辑
+			atimeinfo_obj.datagrid('beginEdit', atimeinfo_index);
+		}
+	},'-',{
+		iconCls: 'icon-save',
+		text: "保存",
+		handler: function() {
+            //如果没有被编辑的行，则直接返回
+            if (atimeinfo_index == undefined) {
+                return;
+            }
+
+            atimeinfo_obj.datagrid('endEdit', atimeinfo_index); //先结束编辑
+            var row = atimeinfo_obj.datagrid("getChanges")[0]; //这个是返回所有被修改的行数据，但是我们这里每次只允许编辑一行，所以我去第一行被修改的数据即可
+
+            if (row == undefined) {
+                atimeinfo_index = undefined;
+                return;
+            }
+            //此时row是一个Object,那么js中如何在对象中添加属性呢？
+            //row.op = "add"; //row["op"] = "add"
+            row.op = atimeinfo_op;
+
+            //将这一行数据发送到后台，插入到数据库中
+            //$.post("../../type", row, function(data){}, "json");
+            if (atimeinfo_op == "add") {
+                $.post("../../../addatimeinfo", row, data => {
+                    if (data.code == 200) {
+                        $.messager.show({title: '成功提示', msg: '方案场地类型添加成功...', timeout: 2000, showType: 'slide'});
+                        //刷新页面数据
+                        atimeinfo_obj.datagrid("reload"); //重新加载数据，目的是重新分页
+                    } else {
+                        //如果没有成功，则需要回滚数据
+                        atimeinfo_op.datagrid("rejectChanges");
+                        $.messager.show({title: '失败提示', msg: '方案场地类型添加失败...', timeout: 2000, showType: 'slide'});
+                    }
+                    row = null;
+                    atimeinfo_index = undefined;
+                }, "json");
+                row = null;
+                atimeinfo_index = undefined;
+            } else {
+
+                $.post("../../../updateAtime", row, data => {
+                    if (data.code == 200) {
+                        $.messager.show({title: '成功提示', msg: '修改成功...', timeout: 2000, showType: 'slide'});
+                        //刷新页面数据
+                        atimeinfo_obj.datagrid("reload"); //重新加载数据，目的是重新分页
+                    } else if(data.code == 500){
+                        //如果没有成功，则需要回滚数据
+                        atimeinfo_obj.datagrid("rejectChanges");
+                        $.messager.show({title: '失败提示', msg: '该时间段已有预订，修改失败...', timeout: 2000, showType: 'slide'});
+                    }else{
+                        //如果没有成功，则需要回滚数据
+                        atimeinfo_obj.datagrid("rejectChanges");
+                        $.messager.show({title: '失败提示', msg: '修改失败...', timeout: 2000, showType: 'slide'});
+                    }
+                    row = null;
+                    atimeinfo_index = undefined;
+                }, "json");
+
+                row = null;
+                atimeinfo_index = undefined;
+            }
+        }
+	},'-',{
+		iconCls: 'icon-undo',
+		text: "撤销",
+		handler: function() {
+			atimeinfo_index = undefined;
+			atimeinfo_obj.datagrid("rejectChanges");
+			
+		}
+	}]
+});
+</script>

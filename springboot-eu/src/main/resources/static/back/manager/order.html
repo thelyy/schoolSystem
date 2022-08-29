@@ -1,0 +1,77 @@
+<table id="order_data" data-options="fit:true"></table>
+<table id="admin_data" data-options="fit:true"></table>
+<style>
+    #order_form li {
+        list-style-type: none;
+        margin-top: 20px;
+        float: left;
+        width: 50%;
+    }
+
+    #order_form .myli {
+        width: 100%;
+    }
+
+    #order_form li> label {
+        width: 100px;
+        display: inline-block;;
+        text-align: right;
+    }
+
+    #show_order_dialog_license {
+        border: 2px solid #ccc;
+        width: 400px;
+        height: 400px;
+        position: absolute;
+        top: 50px;
+        right: 50px;
+    }
+</style>
+
+<script type="text/javascript" src="../../ckeditor/ckeditor.js"></script>
+<script type="text/javascript" src="../js/addr.js"></script>
+<script type="text/javascript" src="../../js/vue.js"></script>
+<script type="text/javascript" src="../../js/axios.js"></script>
+<script type="text/javascript" src="../../js/qs.js"></script>
+<script>
+    var order_obj;
+    var order_status_obj = [{id:1, name:"未使用"}, {id:0, name:"已使用"}]
+
+    order_obj = $('#order_data').datagrid({
+        url:'../../../selectAllend',
+        fitColumns: true,
+        striped: true,
+        loadMsg: "数据加载中...",
+        pagination: true,
+        rownumbers: true,
+        //pageSize: 15,
+        singleSelect: true,
+        pageList: [5,10,15,20,30,40,50,100],
+        sortName: "oid",
+        remoteSort: false,
+        columns:[[
+            {field:'oid',title:'编号',width:40,align:'center', sortable:"true"},
+            {field:'aid',title:'场地编号',width:60,align:'center', sortable:"true",editor:{type:"text", options:{required:true}}},
+            {field:'aname',title:'场地名称',width:100,align:'center', sortable:"true",editor:{type:"text", options:{required:true}}},
+            {field:'mid',title:'用户编号',width:60,align:'center', sortable:"true",editor:{type:"text", options:{required:true}}},
+            {field:'nickName',title:'用户昵称',width:100,align:'center', sortable:"true",editor:{type:"text", options:{required:true}}},
+            {field:'gid',title:'方案编号',width:60,align:'center', sortable:"true",editor:{type:"text", options:{required:true}}},
+            {field:'gname',title:'方案名称',width:150,align:'center', sortable:"true",editor:{type:"text", options:{required:true}}},
+            {field:'time',title:'年月日',width:100,align:'center', sortable:"true",editor:{type:"date", options:{required:true}}},
+            {field:'starttime',title:'开始时间',width:100,align:'center', sortable:"true",editor:{type:"text", options:{required:true}}},
+            {field:'endtime',title:'结束时间',width:100,align:'center', sortable:"true",editor:{type:"text", options:{required:true}}},
+            {field:'status',title:'使用状态',width:100,align:'center',sortable:"true", formatter:function(val, row, index){
+                    if(val == 0){
+                        return '<font color="red">已使用</font>';
+                    } else {
+                        return '<font color="green">未使用</font>';
+                    }
+                },editor:{options:{required: true, valueField:"id", textField:"name", data:order_status_obj}}}
+        ]],
+        toolbar: "#order_search"
+    });
+
+
+</script>
+
+

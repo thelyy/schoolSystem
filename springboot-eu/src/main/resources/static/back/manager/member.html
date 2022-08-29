@@ -1,0 +1,172 @@
+<table id="login_data" data-options="fit:true"></table>
+
+<script>
+var login_status_obj = [{id:0, name:"已注销"}, {id:1, name:"在线"}]
+var login_index = undefined; //用来记录当前正在被编辑的行
+var login_op;
+var login_info;
+
+var login_obj = $('#login_data').datagrid({
+	url:'../../../findMemberSend',
+	fitColumns: true,
+	striped: true,
+	loadMsg:"数据加载中...",
+	pagination: true,
+	rownumbers: true,
+	pageSize: 5,
+	singleSelect: true,
+	pageList: [2,5,10,20,30,40,50,100],
+	sortName: "mid",
+	remoteSort: false,
+	columns:[[
+		{field:'mid',title:'用户编号',width:100,align:'center', sortable:"true"},
+		{field:'nickName',title:'用户昵称',width:100,align:'center'},
+		{field:'pwd',title:'会员密码',width:100,align:'center'},
+		{field:'tel',title:'联系方式',width:100,align:'center'},
+		{field:'email',title:'会员邮箱',width:100,align:'center'},
+		{field:'status',title:'类型状态',width:100,align:'center', formatter:function(val, row, index){
+			if(val == 0){
+				return '<font color="red">已注销</font>';
+			} else {
+				return '<font color="green">在线</font>';
+			}
+		},editor:{type:"combobox", options:{required: true, valueField:"id", textField:"name", data:login_status_obj}}}
+		                                           //传递到后面服务器用的值的属性    显示在界面上给用户看的值属性     这数据来源于那个集合对象
+	]],
+	toolbar: [{
+		/*iconCls: 'icon-add',
+		text:"添加",
+		handler: function() {
+			login_op = "add";
+			login_info = "添加";
+			
+			if (login_index != undefined) { // 说明正在被编辑的行
+				return;
+			}
+			//在表格的最前面插入一行
+			login_obj.datagrid('insertRow',{index: 0, row: {}});
+			login_index = 0;
+			login_obj.datagrid('beginEdit', login_index); // 开始编辑指定行
+		}
+	},'-',{*/
+        iconCls: 'icon-application-delete',
+        text: "删除",
+        handler: function() {
+            login_op = "del";
+            login_info = "删除";
+
+            //获取选中的行
+            var row = login_obj.datagrid('getSelected');
+            if (row == null) { //说明没有被选中的行
+                $.messager.show({title:'温馨提示', msg:'请选择您要删除的类型...', timeout:2000,showType:'slide'});
+                return;
+            }
+
+            //获取选中的行的索引
+            login_index = login_obj.datagrid('getRowIndex', row);
+            console.log(row)
+
+            $.post("../../../delMember", row, data=> {
+                if(data.code == 200) {
+                    $.messager.show({title:'成功提示', msg:'用户信息删除成功...', timeout:2000,showType:'slide'});
+                    //刷新页面数据
+                    login_obj.datagrid("reload"); //重新加载数据，目的是重新分页
+                }else{
+                    //如果没有成功，则需要回滚数据
+                    login_obj.datagrid("rejectChanges");
+                    $.messager.show({title:'失败提示', msg:'该用户还未注销，删除失败...', timeout:2000,showType:'slide'});
+                }
+                row = null;
+                login_index = undefined;
+            }, "json");
+            row = null;
+            login_index = undefined;
+
+        }
+    },'-',{
+	    iconCls: 'icon-edit',
+		text: "修改",
+		handler: function() {
+			login_op = "updates";
+			login_info = "修改";
+			
+			//判断有没有正在被编辑的行
+			if (login_index != undefined) { //说明有正在被编辑的行
+				return
+			}
+			
+			//获取选中的行
+			var row = login_obj.datagrid('getSelected');
+			if (row == null) { //说明没有被选中的行
+				$.messager.show({title:'温馨提示', msg:'请选择您要修改的信息...', timeout:2000,showType:'slide'});
+			    return;
+			}
+			
+			//获取选中的行的索引
+			login_index = login_obj.datagrid('getRowIndex', row);
+			
+			//开启编辑
+			login_obj.datagrid('beginEdit', login_index);
+		}
+	},'-',{
+		iconCls: 'icon-save',
+		text: "保存",
+		handler: function() {
+			//如果没有被编辑的行，则直接返回
+			if (login_index == undefined) {
+				return;
+			}
+			
+			login_obj.datagrid('endEdit', login_index); //先结束编辑
+			var row = login_obj.datagrid("getChanges")[0]; //这个是返回所有被修改的行数据，但是我们这里每次只允许编辑一行，所以我去第一行被修改的数据即可
+		
+		if(row == undefined){
+			login_index = undefined;
+			return;
+		}
+			//此时row是一个Object,那么js中如何在对象中添加属性呢？
+			//row.op = "add"; //row["op"] = "add"
+			row.op = login_op;
+			
+			//将这一行数据发送到后台，插入到数据库中
+			//$.post("../../type", row, function(data){}, "json");
+            $.post("../../../updateMember", row, data=> {
+                if(data.code == 200) {
+                    $.messager.show({title:'成功提示', msg:'用户状态修改成功...', timeout:2000,showType:'slide'});
+                    //刷新页面数据
+                    login_obj.datagrid("reload"); //重新加载数据，目的是重新分页
+                }else{
+                    //如果没有成功，则需要回滚数据
+                    login_obj.datagrid("rejectChanges");
+                    $.messager.show({title:'失败提示', msg:'用户状态态修改失败', timeout:2000,showType:'slide'});
+                }
+                row = null;
+                login_index = undefined;
+            }, "json");
+            row = null;
+            login_index = undefined;
+		}
+	},'-',{  
+	// 	iconCls: 'icon-application-osx-go',
+	// 	text: "导入",
+	// 	handler: function() {
+	// 		login_info = "导入";
+	// 		$.post("../../login", {op:"daochu"}, data=> {
+	// 			if(data.code == 200) {
+	// 				$.messager.show({title:'成功提示', msg:'会员信息' + login_info + '成功...', timeout:2000,showType:'slide'});
+	// 			}else{
+	// 				$.messager.alert('失败提示','会员信息' + login_info + '失败...','error');
+	// 			}
+	// 		}, "json");
+	// 	}
+	// },'-',{
+		iconCls: 'icon-undo',
+		text: "撤销",
+		handler: function() {
+			login_index = undefined;
+			login_obj.datagrid("rejectChanges");
+			
+		}
+	}]
+});
+</script>

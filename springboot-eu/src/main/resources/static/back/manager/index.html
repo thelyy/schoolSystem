@@ -1,0 +1,173 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8" />
+<title>校园活动中心-后台管理</title>
+<link rel="short icon" href="../../images/logo.jpg" type="image/x-icon">
+<link rel="stylesheet" type="text/css" href="../../easyui/css/easyui.css" />
+<link rel="stylesheet" type="text/css" href="../../easyui/css/wu.css" />
+<link rel="stylesheet" type="text/css" href="../../easyui/css/icon.css" />
+<script type="text/javascript" src="../../js/jquery-3.5.1.min.js"></script>
+<script type="text/javascript" src="../../easyui/js/jquery.easyui.min.js"></script>
+<script type="text/javascript" src="../../easyui/js/easyui-lang-zh_CN.js"></script>
+<script type="text/javascript" src="../js/showpic.js"></script>
+<script  type="text/javascript" src="../style/js/jquery.cookie.js"></script>
+<script type="text/javascript" src="../js/ajaxfileupload.js"></script>
+</head>
+<body class="easyui-layout">
+<!-- begin of header -->
+<div class="wu-header" data-options="region:'north',border:false,split:true">
+   	<div class="wu-header-left">
+    	<h1>校园活动中心-后台管理</h1>
+    </div>
+    <div class="wu-header-right">
+    	<p><strong class="easyui-tooltip"></strong>，欢迎您！</p>
+        <p><a href="../../images/logo.jpg">网站首页</a>|<a href="#">支持论坛</a>|<a href="#">帮助中心</a>|<a href="#" onclick="loginout()">安全退出</a></p>
+    </div>
+</div>
+   <!-- end of header -->
+   <!-- begin of sidebar -->
+<div class="wu-sidebar" data-options="region:'west',split:true,border:true,title:'导航菜单'"> 
+   	<div class="easyui-accordion" data-options="border:false,fit:true"> 
+       	<div title="信息管理" data-options="iconCls:'icon-user-group'" style="padding:5px;">
+			<ul class="easyui-tree wu-side-tree">
+                <li iconCls="icon-group"><a href="javascript:void(0)" data-icon="icon-group" data-link="admin.html" iframe="0">管理员信息管理</a></li>
+                <li iconCls="icon-group-edit"><a href="javascript:void(0)" data-icon="icon-group-edit" data-link="member.html" iframe="0">用户信息管理</a></li>
+            </ul>
+        </div>
+       	<div title="活动方案管理" data-options="iconCls:'icon-report-picture'" style="padding:5px;">
+			<ul class="easyui-tree wu-side-tree">
+                <li iconCls="icon-report-edit"><a href="javascript:void(0)" data-icon="icon-report-edit" data-link="addgoods.html" iframe="0">方案信息管理</a></li>
+                <li iconCls="icon-report-edit"><a href="javascript:void(0)" data-icon="icon-report-edit" data-link="types.html" iframe="0">方案类型管理</a></li>
+                <li iconCls="icon-report-edit"><a href="javascript:void(0)" data-icon="icon-report-edit" data-link="address.html" iframe="0">方案场地类型管理</a></li>
+            </ul>
+        </div>
+        <div title="场地管理" data-options="iconCls:'icon-report-picture'" style="padding:5px;">
+            <ul class="easyui-tree wu-side-tree">
+                <li iconCls="icon-report-edit"><a href="javascript:void(0)" data-icon="icon-report-edit" data-link="addgoods1.html" iframe="0">场地时间管理</a></li>
+            </ul>
+        </div>
+        <div title="预约浏览" data-options="iconCls:'icon-report-picture'" style="padding:5px;">
+            <ul class="easyui-tree wu-side-tree">
+                <li iconCls="icon-report-edit"><a href="javascript:void(0)" data-icon="icon-report-edit" data-link="order.html" iframe="0">预约信息管理</a></li>
+            </ul>
+        </div>
+    </div>
+</div>	
+<!-- end of sidebar -->    
+<!-- begin of main -->
+<div class="wu-main" data-options="region:'center'">
+    <div id="wu-tabs" class="easyui-tabs" data-options="border:false,fit:true">  
+        <div title="首页" data-options="href:'welcome.html',closable:false,iconCls:'icon-tip',cls:'pd3'"></div>
+    </div>
+</div>
+<!-- end of main --> 
+<!-- begin of footer -->
+<!-- end of footer -->  
+<script type="text/javascript">
+
+getAdminInfo();
+
+function toInfo(){
+    $('.alink').click(function () {
+        var title = $(this).text();
+        var url = $(this).attr('data-link');
+        var iconCls = $(this).attr('data-icon');
+        var iframe = $(this).attr('iframe') == 1?true:false;
+        addTab(title,url,iconCls,iframe);
+    })
+}
+
+
+function getAdminInfo(){
+    $.post("../../../selectAdmin",{}, data=>{
+        console.log(data);
+        if(data.code==200){
+            $(".wu-header-right strong").text(data.data.aname)
+        }else{
+            alert("未登录！")
+            window.location.href = '/back/adminlogin.html';
+
+        }
+
+    })
+}
+
+$(function(){
+	$('.wu-side-tree a').bind("click",function(){
+		var title = $(this).text();
+		var url = $(this).attr('data-link');
+		var iconCls = $(this).attr('data-icon');
+		var iframe = $(this).attr('iframe')==1?true:false;
+		addTab(title,url,iconCls,iframe);
+	});	
+});
+
+/**
+* Name 选项卡初始化
+*/
+$('#wu-tabs').tabs({
+	tools:[{
+		iconCls:'icon-reload',
+		border:false,
+		handler:function(){
+			$('#wu-datagrid').datagrid('reload');
+		}
+	}]
+});
+	
+/**
+* Name 添加菜单选项
+* Param title 名称
+* Param href 链接
+* Param iconCls 图标样式
+* Param iframe 链接跳转方式（true为iframe，false为href）
+*/	
+
+function loginout() {
+    $.post("../../../logout",{}, data=>{
+        window.location.href = '/back/adminlogin.html';
+    })
+}
+
+function addTab(title, href, iconCls, iframe){
+	var tabPanel = $('#wu-tabs');
+	if(!tabPanel.tabs('exists',title)){
+		var content = '<iframe scrolling="auto" frameborder="0"  src="'+ href +'" style="width:100%;height:100%;"></iframe>';
+		if(iframe){
+			tabPanel.tabs('add',{
+				title:title,
+				content:content,
+				iconCls:iconCls,
+				fit:true,
+				cls:'pd3',
+				closable:true
+			});
+		} else{
+			tabPanel.tabs('add',{
+				title:title,
+				href:href,
+				iconCls:iconCls,
+				fit:true,
+				cls:'pd3',
+				closable:true
+			});
+		}
+	} else {
+		tabPanel.tabs('select',title);
+	}
+}
+/**
+* Name 移除菜单选项
+*/
+function removeTab(){
+	var tabPanel = $('#wu-tabs');
+	var tab = tabPanel.tabs('getSelected');
+	if (tab){
+		var index = tabPanel.tabs('getTabIndex', tab);
+		tabPanel.tabs('close', index);
+	}
+}
+</script>
+</body>
+</html>

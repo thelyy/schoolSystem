@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html>
+ <head> 
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /> 
+
+  <title>修改密码</title> 
+  
+  <link rel="stylesheet" href="style/css/base.css"  /> 
+  <link rel="stylesheet" href="style/css/login.css"  /> 
+  <link rel="stylesheet" href="style/layui/css/layui.css"  >
+  <link rel="stylesheet" href="style/layer/skin/layer.css"  >
+  <script  type="text/javascript" src="style/js/jquery-1.7.1.min.js"></script> 
+  <script  type="text/javascript" src="style/js/jquery.cookie.js"></script> 
+  <script  type="text/javascript" src="style/layui/layui.js"></script> 
+  <script  type="text/javascript" src="style/layer/layer.js"></script>
+  
+<script  type="text/javascript" src="style/js/jquery-1.7.1.min.js"></script>
+<script type="text/javascript" src="../js/axios.js"></script>
+<script type="text/javascript" src="../js/qs.js"></script>
+
+  <!-- 验证码 隐藏滚动条 -->
+  <style>
+  		.imgcode{
+			width: 95px;
+			position: absolute;
+			right: 0;
+			top: 0px;
+			cursor: pointer;
+			height: 46px;
+			font-size: 24px;
+			text-align: center;
+			line-height: 46px; 
+		}
+		::-webkit-scrollbar{
+			display:none;
+		}
+  </style>
+
+ </head> 
+  <div id="content" class="content"> 
+
+  
+   <div class="banner-box"> 
+
+    <form id="mainForm" class="main-form"  > 
+		 <div class="tab-title"> 
+		  <a class="linkABlue" id="toAccountLogin" href="">修改密码</a>
+		 </div>
+		 <div id="errorMsg" class="tip-box visiblility-hidden"> 
+		  <i class="err-ico"></i> 
+		  <span class="tip-font" id="tipMsg">请填写完整的信息</span>
+		  <span id="closeErrorMsg" class="close-ico"></span> 
+		 </div>
+		 
+		 <div id="errorMsg" class="tip-box visiblility-hidden"> 
+		  <i class="err-ico"></i> 
+		  <span class="tip-font" id="errorsMsg">用户名或邮箱错误</span> 
+		  <span id="closeErrorMsg" class="close-ico"></span> 
+		 </div>
+		 <!-- 电话 -->
+		 <div class="normalInput" id="cycode-box"> 
+		   <input class="ipt-account inp-focus" name="tel" id="tel" maxlength="50" placeholder="电话" autocomplete="off"  onfocus="closeErrorMsg()" />
+		 </div>
+		 <!-- 密 码 -->
+		 <div class="normalInput "> 
+		  <input type="password" class="inp-focus" name="pwd" id="pwd" maxlength="16" autocomplete="off"  placeholder="新的密码" onfocus="closeErrorMsg()"  />
+		 </div> 
+		 <!-- 确认密码 -->
+		 <div class="normalInput "> 
+		  <input type="password" class="inp-focus" name="repwd" id="repwd" maxlength="16" autocomplete="off"  placeholder="确认密码" onfocus="closeErrorMsg()"  />
+		 </div> 
+		 <a id="updatepwd" class="fullBtnBlue" href="javascript:void(0)" @click="updatepwd(aid)" >修改密码</a>
+		 <a id="updatepwd" class="fullBtnBlue" href="adminlogin.html" >返回登录</a>
+
+	</form>
+
+   </div> 
+  </div> 
+
+ <script type="text/javascript">
+ var types_op;
+
+ //不加这个复选框样式不会改变
+	layui.use('form', function(){
+	  var form = layui.form; //只有执行了这一步，部分表单元素才会自动修饰成功
+	});
+	//点击登录事件
+		$("#updatepwd").click(function(){
+			var tel = $("#tel").val();
+			var realName = $("#realName").val();
+			var pwd = $("#pwd").val();
+			var repwd = $("#repwd").val();
+			if( tel=="" || realName=="" || pwd=="" || repwd==""){
+				var obj = document.getElementById("errorMsg");
+				$("#tipMsg").html("请填写完整的登录信息！");
+				obj.setAttribute("class", "tip-box visiblility-show");
+				return ;
+			}
+			if(pwd != repwd){
+				var obj = document.getElementById("errorMsg");
+				$("#tipMsg").html("两次输入的密码不一致，请重新输入！");
+				obj.setAttribute("class", "tip-box visiblility-show");
+				return ;
+			}
+			
+			axios.post("../../../updatePwd",qs.stringify({tel:tel, pwd:pwd})).then(rt=> {
+				if (rt.status == 200 && rt.data.code == 200) {
+				    window.location.href = "adminlogin.html";
+				}else{
+					alert("电话号码不存在，修改失败...");
+				}
+			})
+		})
+	
+	//点击错误信息关闭按钮
+	$("#closeErrorMsg").click(function(){
+			var obj = document.getElementById("errorMsg");
+			obj.setAttribute("class", "tip-box visiblility-hidden");
+	});
+
+	//关闭错误提示
+	function closeErrorMsg(){
+			var obj = document.getElementById("errorMsg");
+			obj.setAttribute("class", "tip-box visiblility-hidden");
+	};
+
+</script>
+
+</body>
+</html>

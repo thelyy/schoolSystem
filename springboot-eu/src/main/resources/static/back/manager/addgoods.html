@@ -1,0 +1,370 @@
+<table id="goods_data" data-options="fit:true"></table>
+
+<div id="goods_search">
+<a href="javascript:showAddGoodsInfoDialog()" class="easyui-linkbutton" data-options="iconCls:'icon-add',plain:true" style='float:left'>添加</a>
+<div class="datagrid-btn-separator"></div>
+<label class="navy-lbl">商品名称:</label><input type="text" id="goods_search_gname" class="navy_ipt200">
+    <a href="javascript:searchGoodsInfo()"class="easyui-linkbutton" data-option="iconCls:'icon-search'">查询</a>
+</div>
+
+<div id="goods_dialog" class="easyui-dialog" data-options="resizable:true, modal:true, closed:true">
+<form id="goods_form">
+    <ul>
+        <li><label for="goods_dialog_gname">方案名称:</label><input type="text" id="goods_dialog_gname" class="navy_ipt400 " placeholder="请输入方案名称..."/></li>
+        <li class="myli"><label>方案图片:</label><input type="file" id="goods_dialog_pics" name="pic" multiple="multiple" onchange="setImagePreviews(this, 'show_goods_dialog_pics')"/></li>
+        <li><label>类型名称:</label>
+            <select id="selectType">
+
+            </select>
+        </li>
+        <li><label>场地名称:</label>
+            <select id="selectAddress">
+
+            </select>
+        </li>
+        <li class="myli"><label>商品详细:</label><textarea id="goods_dialog_detail" name="goods_dialog_detail" cols="120" rows="4"></textarea></li>
+    </ul>
+</form>
+</div>
+
+<table id="admin_data" data-options="fit:true"></table>
+<style>
+#goods_form li {
+    list-style-type: none;
+    margin-top: 20px;
+    float: left;
+    width: 50%;
+}
+
+#goods_form .myli {
+    width: 100%;
+}
+
+#goods_form li> label {
+    width: 100px;
+    display: inline-block;;
+    text-align: right;
+}
+
+#show_goods_dialog_license {
+    border: 2px solid #ccc;
+    width: 400px;
+    height: 400px;
+    position: absolute;
+    top: 50px;
+    right: 50px;
+}
+</style>
+
+<script type="text/javascript" src="../../ckeditor/ckeditor.js"></script>
+<script type="text/javascript" src="../js/addr.js"></script>
+<script type="text/javascript" src="../../js/vue.js"></script>
+<script type="text/javascript" src="../../js/axios.js"></script>
+
+<script>
+var goods_shops;
+var goods_obj;
+var tnameList;
+var anameList;
+
+CKEDITOR.replace("goods_dialog_detail");
+
+
+$(function(){
+
+})
+
+goods_obj = $('#goods_data').datagrid({
+	url:'../../../findGoodSend',
+	fitColumns: true,
+	striped: true,
+	loadMsg: "数据加载中...",
+	pagination: true,
+	rownumbers: true,
+	//pageSize: 15,
+	singleSelect: true,
+	pageList: [10,15,20,30,40,50,100],
+	sortName: "gid",
+	remoteSort: false,
+	columns:[[
+        {field:'gid',title:'方案编号',width:100,align:'center', sortable:"true"},
+        {field:'gname',title:'方案名称',width:100,align:'center', editor:{type:"text", options:{required:true}}},
+        {field:'tid',title:'类型编号',width:100,align:'center', editor:{type:"text", options:{required:true}}},
+        {field:'aid',title:'场地类型编号',width:100,align:'center', editor:{type:"text", options:{required:true}}}
+	]],
+	toolbar: "#goods_search"
+});
+
+
+
+function showAddGoodsInfoDialog() {
+	$("#goods_form")[0].reset();  //表单重置 [0]相当于是将jquery对象转化成js对象 $(obj) -> js对象转jquery对象
+	$("#show_goods_dialog_pics").html("");
+	$("#show_goods_dialog_license").html("");
+	$("#goods_form input,#goods_form textarea").removeAttr("readonly");
+	$("#goods_form select").removeAttr("disabled");
+
+
+	$('#goods_dialog').dialog({
+		title: '添加商品信息',
+		fit: true,
+		buttons: [
+			{
+				text: "添加",
+				iconCls: "icon-ok",
+				handler: function() {
+					goods_addInfo();  //调用添加的方法
+				}
+			
+		},  {
+			text: "取消",
+			iconCls: "icon-cancel",
+			handler: function() {
+				$('#goods_dialog').dialog('close')
+			}
+		}
+	]	
+});
+	$('#goods_dialog').dialog('open');
+    $.post("../../../selectTname", data=>{
+        goods_shops = data;
+
+        var str = '<option value="">--请选择--</option>';
+        $.each(data, function(index, item){
+            str += '<option value="' + item.tid + '">' +item.tname+ '</option>';
+        })
+        $("#selectType").html("").append($(str));
+
+    }, "json");
+
+
+    $.post("../../../selectAname", data=>{
+        goods_shops = data;
+
+        var str = '<option value="">--请选择--</option>';
+        $.each(data, function(index, item){
+            str += '<option value="' + item.aid + '">' +item.aname+ '</option>';
+        })
+        $("#selectAddress").html("").append($(str));
+
+    }, "json");
+}
+
+function searchGoodsInfo() {
+    var gname = $.trim($("#goods_search_gname").val());
+
+    goods_obj.datagrid({
+        url: "../../../findGoodsBySearchSend",
+        queryParams: {gname: gname}
+    })
+}
+
+function showUpdateGoodsInfoDialog(gid) {
+	$("#goods_form") [0].reset();  //表单重置 [0]相当于是将jquery对象转化成js对象 $(obj) -> js对象转jquery对象
+	$("#show_shop_dialog_pics").html("");
+//	$("#show_shop_dialog_license").html("");
+//	$("#goods_form input,#goods_form textarea").removeAttr("readonly");
+//	$("#goods_form select").removeAttr("disabled");
+	
+	$.post("../../goods", {op:"findByGid", gid:gid}, data => {
+		if (data.code == 200) {
+			//$("#goods_form input,#goods_form textarea").attr("readonly", "true");
+			//$("#goods_form select").attr("disabled", "true");
+			$("#goods_dialog_gname").val(data.data.gname);
+			$("#goods_dialog_rebate").val(data.data.rebate);
+			$("#goods_dialog_price").val(data.data.price);
+			$("#goods_dialog_sdate").val(data.data.sdate);
+			$("#goods_dialog_edate").val(data.data.edate);
+			$("#goods_dialog_status").val(data.data.status);
+			$("#goods_dialog_intro").val(data.data.intro);
+			$("#goods_dialog_detail").html(data.data.detail);
+			
+			CKEDITOR.instances.goods_dialog_detail.setData(data.data.detail);
+			var imgStr = "<img src='../../" + data.data.license + "' width='400px' height='400px' />";
+			$("#show_goods_dialog_license").html("").append($(imgStr));
+			
+			imgStr = "";
+			var pics = data.data.pics.split(";");
+			for (var i = 0, len = pics.length; i < len; i ++) {
+				imgStr += "<img src='../../" + pics[i] + "' width='100px' height='100px' />&nbsp;";
+			}
+			$("#show_goods_dialog_pics").html("").append($(imgStr));
+			
+			$('#goods_dialog').dialog({
+				title: '修改店铺信息',
+				fit: true,
+				buttons: [
+					{
+						text: "修改",
+						iconCls: "icon-edit",
+						handler: function() {
+							goods_updateInfo();
+							
+						}
+					}, {
+						text: "取消",
+						iconCls: "icon-cancel",
+						handler: function() {
+							$('#goods_dialog').dialog('close')
+						}
+					}
+				]
+			});
+			$('#goods_dialog').dialog('open');
+        }
+        })
+}
+
+function goods_addInfo() {
+	var gname = $.trim($("#goods_dialog_gname").val());
+	var tid = $.trim($("#selectType").val());
+    var aid = $.trim($("#selectAddress").val());
+
+	
+	var detail = CKEDITOR.instances.goods_dialog_detail.getData();
+	var obj = {gname:gname, aid:aid, tid:tid, detail:detail};
+
+	//console.log(tid,aid)
+
+	$.ajaxFileUpload({
+		url: "../../../addGoods",
+		secureuri: false,
+		fileElementId: "goods_dialog_pics",
+		dataType: "json",
+		data: obj,
+		success: function(data, status) {
+			if(data.code == 200) {
+				goods_obj.datagrid("reload");
+				$('#goods_dialog').dialog('close');
+				$.messager.show({title: "成功提示", msg: "店铺信息添加成功...", timeout: 2000, showType:"slide"});
+				location.reload();
+			} else {
+				$.messager.alert("失败提示", "商品信息添加失败...", "error");
+			}
+
+		},
+		error: function(data, status, e) {
+			$.messager.alert("错误提示", "商品信息添加失败...\n" + e, "error");
+		}
+
+	});
+}
+
+function goods_updateInfo() {
+	var sdate = $.trim($("#goods_dialog_sdate").val());
+	var edate = $.trim($("#goods_dialog_edate").val());
+	var status = $.trim($("#goods_dialog_status").val());
+
+	var obj = {sdate:sdate, edate:edate, status:status}
+	
+	$.ajaxFileUpload({
+		url: "../../goods?op=update",
+		secureuri: false,
+		fileElementId: ["goods_dialog_pics"],
+		dataType: "json",
+		data: obj,
+		
+		
+		success: function(data, status) {
+			//console.log(obj);
+			if(data.code == 200) {
+				goods_obj.datagrid("reload");
+				$('#goods_dialog').dialog('close');
+				$.messager.show({title: "成功提示", msg: "商品信息修改成功...", timeout: 2000, showType:"slide"});	
+			} else {
+				$.messager.alert("失败提示", "商品信息修改失败...", "error");
+			}
+		},
+		error: function(data, status, e) {
+			$.messager.alert("错误提示", "商品信息修改失败...\n" + e, "error");
+		}
+	});
+}
+
+
+function showGoodsInfoDetail(gid) {
+	$.post("../../goods", {op:"findByGid", gid:gid}, data => {
+		if (data.code == 200) {
+			$("#goods_form input,#goods_form textarea").attr("readonly", "true");
+			//$("#goods_form select").attr("disabled", "true");
+			$("#goods_dialog_gname").val(data.data.gname);
+			$("#goods_dialog_rebate").val(data.data.rebate);
+			$("#goods_dialog_price").val(data.data.price);
+			$("#goods_dialog_sdate").val(data.data.sdate);
+			$("#goods_dialog_edate").val(data.data.edate);
+			$("#goods_dialog_status").val(data.data.status);
+			$("#goods_dialog_intro").val(data.data.intro);
+		
+			//console.log(data.data.detail);
+			CKEDITOR.instances.goods_dialog_detail.setData(data.data.detail);
+			
+			var imgStr = "<img src='../../" + data.data.license + "' width='400px' height='500px' />";
+			$("#show_goods_dialog_license").html("").append($(imgStr));
+			
+			imgStr = "";
+			var pics = data.data.pics.split(";");
+			for (var i = 0, len = pics.length; i < len; i ++) {
+				imgStr += "<img src='../../" + pics[i] + "' width='100px' height='100px' />&nbsp;";
+			}
+			$("#show_goods_dialog_pics").html("").append($(imgStr));
+			$('#goods_dialog').dialog({
+				title: '店铺详细信息',
+				fit: true,
+				buttons: [
+					{
+						text: "关闭",
+						iconCls: "icon-cancel",
+						handler: function() {
+							$('#goods_dialog').dialog('close')
+						}
+					}
+				]
+			});
+			$('#goods_dialog').dialog('open');
+		}
+	}, "json");
+}
+function addOption(node,obj){
+	if(node!=undefined && node.nodeType==1){
+		var opt=document.createElement("option");
+		opt.setAttribute("value",node.getAttribute("name"));
+		opt.appendChild( document.createTextNode( node.getAttribute("name")  ) );
+		obj.appendChild(opt);
+	}
+}
+function findType() {
+    $.ajaxFileUpload({
+        url: "../../../selectTname",
+        dataType: "json",
+        data: obj,
+        success: function(data) {
+            if(data.code == 200) {
+                goods_obj.datagrid("reload");
+                $('#goods_dialog').dialog('close');
+                $.messager.show({title: "成功提示", msg: "店铺信息添加成功...", timeout: 2000, showType:"slide"});
+                location.reload();
+            } else {
+                $.messager.alert("失败提示", "商品信息添加失败...", "error");
+            }
+
+        },
+        error: function(data, status, e) {
+            $.messager.alert("错误提示", "商品信息添加失败...\n" + e, "error");
+        }
+
+    });
+}
+
+function  findGoodsend() {
+    axios.get("/eu/findByPage", {params:{}
+    }).then(res=>{
+        this.goodsList = res.data;
+        this.total = res.data.total;
+        this.goodsList = res.data.goodsInfoList;
+
+    })
+}
+
+</script>
+
+

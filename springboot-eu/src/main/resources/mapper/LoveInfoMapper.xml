@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybaits.rog//DTD Config 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.lyy.eu.mapper.LoveInfoMapper">
+
+    <select id="findLoveTotal" resultType="Integer" parameterType="com.lyy.eu.pojo.PageInfo">
+        select count(g.gid) from goodsinfo g,memberinfo m,lovesinfo l where g.gid=l.gid and m.mid=l.mid and m.mid=#{mid}
+    </select>
+
+    <select id="findLoveGoods" resultType="com.lyy.eu.pojo.GoodsInfo" parameterType="com.lyy.eu.pojo.PageInfo">
+        select g.* from goodsinfo g,lovesinfo l,memberinfo m
+        where g.gid=l.gid and m.mid=l.mid and m.mid=#{mid}
+        order by gid limit ${page}, ${rows}
+    </select>
+    <select id="findLoveAll" resultType="com.lyy.eu.pojo.LovesInfo" parameterType="com.lyy.eu.pojo.LovesInfo">
+        select g.gname,m.nickName,l.gid,l.mid,lid from goodsinfo g,lovesinfo l,memberinfo m
+        where g.gid=l.gid and m.mid=l.mid
+    </select>
+    <insert id="addLoveGoods" parameterType="com.lyy.eu.pojo.LovesInfo">
+        insert into lovesinfo (mid, gid) values (#{mid},#{gid});
+    </insert>
+
+    <select id="findLoveStatus" parameterType="com.lyy.eu.pojo.LovesInfo" resultType="com.lyy.eu.pojo.LovesInfo">
+        select * from lovesinfo where mid=#{mid} and gid=#{gid};
+    </select>
+
+    <delete id="delLoveGoods" parameterType="com.lyy.eu.pojo.LovesInfo">
+        delete from lovesinfo where mid=#{mid} and gid=#{gid};
+    </delete>
+</mapper>

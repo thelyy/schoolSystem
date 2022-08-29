@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Insert title here</title>
+<link href="css/base2.css" rel="stylesheet" >
+<link href="css/checkout.css" rel="stylesheet" >
+<link rel="stylesheet" href="css/basic.css"/>
+</head>
+<body id="index">
+<input id="currentTime_" type="hidden" value="1409623012768">
+<div class="container" id="member_addr">
+<div class="checkout-title"><span>配送地址</span></div>
+<div class="checkout-addr"  v-for="address in address">
+<div class="homeAddress" >
+	<div class="homea">
+		<span class="homename">{{address.homeName}}</span><br>
+		<span class="homecity">{{address.province}}{{address.city}}{{address.area}}{{address.addr}}</span><br>
+		<span class="hometel">{{address.tel}}</span>
+	</div>
+</div>
+</div>
+</div>
+<div class="checkout-title"><span>订单信息</span></div>
+ <div id="payprocess">
+  <h1>确认订单</h1>
+  <form id="orderform" method="post" action="/buy/insertOrder.do" target="iframe">
+    <table width="876px" cellspacing="0" cellpadding="0" border="0">
+      <thead>
+        <tr>
+          <th class="first" width="250" valign="middle">商品名称</th>
+          <th class="first" width="100" valign="middle">商品图片</th>
+          <th width="130" valign="middle">价值</th>
+          <th width="120" valign="middle">窝窝价</th>
+          <th width="170" valign="middle">购买数量</th>
+          <th class="last" width="138" valign="middle"> <span>小计</span> </th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr v-for="(item,index) in goods">
+          <td valign="middle" height="60"><a href="#"> <span class="title">{{item.gname}}</span> </a></td>
+          <td valign="middle" height="60"><a href="#"> <img width="100" height="100" border="0" :src="item.pics"></a></td>
+          <td valign="middle" height="60" align="center"><span class="price">&yen;{{item.price}}</span></td>
+          <td valign="middle" height="60" align="center"><span class="price">&yen;{{item.wprice}}</span></td>
+          <td valign="middle" height="60" align="center"><span>{{item.nums}}</span></td>
+          <td class="last" valign="middle" height="60" align="center">
+          <span id="yprice" class="price" v-html="'&yen;' + (item.wprice * item.nums).toFixed(2)"></span></td>
+          
+        </tr>  
+      </tbody>
+      <tfoot>
+        <tr>
+          <td valign="middle" height="60" colspan="4"><span class="title redb">应付总额</span></td>
+          <td class="last" valign="middle" align="center"><strong id="totalPrice" class="price" style="float:right">&yen;{{totalPrice}}</strong> 
+          <b style="display:block;float:right;margin-right:20px;font-size:14px;line-height:33px;color:red"></b></td>
+        </tr>
+        <tr>
+          <td colspan="5"></td>
+        </tr>
+      </tfoot>
+    </table>
+  </form>
+  <iframe id="iframe" name="iframe" style="display:none;"></iframe>
+  <div class="subbox"> 
+  <a  class="next" type="next" id="suv" :href="'index.jsp?' + totalPrice">提交订单</a> 
+  <div class="extime" style="text-align:right;font-size:12px;color:#999;padding-top:20px;">订单将在次日失效，请尽快完成支付</div>
+</div>
+<script  type="text/javascript" src="js/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="js/vue.js"></script>
+<script type="text/javascript" src="js/axios.js"></script>
+<script type="text/javascript" src="js/qs.js"></script>
+<script  type="text/javascript">
+
+
+let goods_data = new Vue({
+	el: "#member_addr",
+	data: {
+		address: []
+	},
+	mounted: function() {
+		axios.post("home", qs.stringify({op: "find"})).then(rt => {
+			if (rt.status == 200) {
+				this.address = rt.data.data;
+			}
+		})
+	}
+})
+
+let ve = new Vue({
+	el: "#payprocess",
+	data: {
+		goods: [],
+		totalPrice: 0
+	},
+	mounted: function() {
+		axios.get('cart', {params:{op:"findByMid"}}).then(rt=> {
+			if (rt.status == 200 && rt.data.code == 200) {
+				this.goods = rt.data.data;
+				this.getTotal();
+			}
+		})
+	},
+	
+	
+	methods: {
+		changeNum: function(num, index) {
+			//console.info(num + "\t" + index);
+			let count = this.goods[index].nums; //获取原有的数据
+			count += num;
+			if (count < 1) {
+				count = 1;
+				return;
+			}
+			
+			axios.post("cart", qs.stringify({op:"update", cid:this.goods[index].cid, num:count})).then(rt => {
+				if (rt.status == 200 && rt.data.code == 200) {
+					this.goods[index].nums = count;
+					this.getTotal();
+					//console.info(count);
+				}
+			})
+		},
+		
+		getTotal: function() {
+			this.totalPrice = 0
+			this.goods.forEach(item => {
+				this.totalPrice += item.wprice * item.nums;
+			})
+			this.totalPrice = parseFloat(this.totalPrice.toFixed(2));
+		},
+		
+		del: function(index) {
+			//console.log(index);
+			if (!confirm("您确认要删除此订单吗？")) {
+				return;
+			}
+			let cid = this.goods[index].cid;
+			//console.info(cid);
+			
+			//先删除订单中的数据
+			axios.post("cart", qs.stringify({op:"del", cid:cid})).then(rt => {
+				if (rt.status == 200 && rt.data.code == 200) {
+					this.goods.splice(index, 1); //从vue对象中删除当前元素
+					this.getTotal(); //重新计算总价
+					return;
+				}
+				showMsg("删除订单失败，请稍后再试...", "red");
+			})
+		},
+		
+		truncate: function(index) {
+			if (!confirm("您确认要删除所有订单吗？")) {
+				return;
+			}
+			
+			//console.info(cid);
+			
+			//先删除订单中的数据
+			axios.post("cart", qs.stringify({op:"truncate"})).then(rt => {
+				if (rt.status == 200 && rt.data.code == 200) {
+					//this.goods.splice(index, 1); //从vue对象中删除当前元素
+					this.getTotal(); //重新计算总价
+					//$("#payprocess").reload();
+					location.reload();
+					return;
+				}
+				showMsg("删除订单失败，请稍后再试...", "red");
+		    })
+		}
+	}
+})
+
+
+
+
+</script>
+</body>
+</html>

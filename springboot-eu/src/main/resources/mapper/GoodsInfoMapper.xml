@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybaits.rog//DTD Config 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.lyy.eu.mapper.GoodsInfoMapper">
+
+    <select id="findByPage" parameterType="com.lyy.eu.pojo.PageInfo" resultType="com.lyy.eu.pojo.GoodsInfo">
+        select * from goodsinfo order by gid limit ${page}, ${rows}
+    </select>
+
+    <select id="findAll" parameterType="com.lyy.eu.pojo.PageInfo" resultType="com.lyy.eu.pojo.GoodsInfo">
+        select * from goodsinfo
+    </select>
+
+    <select id="findTotal" resultType="Integer" parameterType="com.lyy.eu.pojo.PageInfo">
+        select count(1) from goodsinfo g, typeinfo t, addressinfo a
+        where t.tid=g.tid and a.aid=g.aid and 1 = 1
+        <if test="gname != null and gname != ''">
+            and gname like concat('%',#{gname},'%')
+        </if>
+        <if test="tname != null and tname != ''">
+            and tname = #{tname}
+        </if>
+        <if test="aname != null and aname != ''">
+            and aname = #{aname}
+        </if>
+    </select>
+
+    <select id="findGoodsByTA" resultType="com.lyy.eu.pojo.GoodsInfo" parameterType="com.lyy.eu.pojo.PageInfo">
+        select g.*,t.tname, a.aname, pics from goodsinfo g,addressinfo a,typeinfo t
+        where g.aid=a.aid and g.tid=t.tid and 1 = 1
+        <if test="tname != null">
+            and tname = #{tname}
+        </if>
+        <if test="aname != null">
+            and aname = #{aname}
+        </if>
+        order by gid limit ${page}, ${rows}
+    </select>
+    
+    <select id="findGoodsBySearch" resultType="com.lyy.eu.pojo.GoodsInfo" parameterType="com.lyy.eu.pojo.PageInfo">
+        select * from goodsinfo where gname like concat('%',#{gname},'%')
+        order by gid limit ${page}, ${rows}
+    </select>
+
+    <select id="findGoodsDetail" parameterType="Integer" resultType="com.lyy.eu.pojo.GoodsInfo">
+        select * from goodsinfo where gid=#{gid}
+    </select>
+
+    <select id="findPlans" parameterType="Integer" resultType="com.lyy.eu.pojo.GoodsInfo">
+        select * from goodsinfo where gid=#{gid}
+    </select>
+
+    <select id="findGoodSend" resultType="com.lyy.eu.pojo.GoodsInfo" parameterType="com.lyy.eu.pojo.PageInfo">
+        select * from goodsinfo order by gid limit ${page}, ${rows}
+    </select>
+
+    <select id="findGoodsBySearchSend" resultType="com.lyy.eu.pojo.GoodsInfo" parameterType="com.lyy.eu.pojo.PageInfo">
+        select * from goodsinfo where gname like concat('%',#{gname},'%') order by gid limit ${page-1}, ${rows}
+    </select>
+
+    <insert id="addGoods" parameterType="com.lyy.eu.pojo.GoodsInfo">
+        insert into goodsinfo (gname, pics, detail, aid, tid) VALUES
+        (#{gname}, #{pics}, #{detail}, #{aid}, #{tid})
+    </insert>
+
+</mapper>

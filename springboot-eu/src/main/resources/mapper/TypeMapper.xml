@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybaits.rog//DTD Config 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.lyy.eu.mapper.TypeMapper">
+
+    <select id="selectTname" resultType="com.lyy.eu.pojo.TypeInfo" parameterType="com.lyy.eu.pojo.GoodsPage">
+        select * from typeinfo
+    </select>
+
+    <insert id="addType" parameterType="com.lyy.eu.pojo.TypeInfo">
+        insert into typeinfo (tname) values (#{tname});
+    </insert>
+
+    <update id="updateType" parameterType="com.lyy.eu.pojo.TypeInfo">
+        update typeinfo set tname = #{tname} where tid=#{tid}
+    </update>
+
+    <select id="findGoodByTidSend" parameterType="Integer" resultType="com.lyy.eu.pojo.GoodsInfo">
+        select * from goodsinfo where tid=#{tid}
+    </select>
+
+    <delete id="delType" parameterType="com.lyy.eu.pojo.TypeInfo">
+        delete from typeinfo where tid=#{tid};
+    </delete>
+
+    <select id="findTypeSend" resultType="com.lyy.eu.pojo.TypeInfo" parameterType="com.lyy.eu.pojo.PageInfo">
+        select * from typeinfo order by tid limit ${page}, ${rows}
+    </select>
+
+    <select id="findTotal" resultType="Integer" parameterType="com.lyy.eu.pojo.PageInfo">
+        select count(1) from typeinfo
+    </select>
+</mapper>

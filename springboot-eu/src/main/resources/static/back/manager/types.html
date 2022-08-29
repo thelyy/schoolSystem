@@ -1,0 +1,166 @@
+<table id="types_data" data-options="fit:true"></table>
+
+<script>
+var types_status_obj = [{id:0, name:"下架"}, {id:1, name:"在架"}]
+var types_index = undefined; //用来记录当前正在被编辑的行
+var types_op;
+var types_info;
+
+var types_obj = $('#types_data').datagrid({
+	url:'../../../findTypeSend',
+	fitColumns: true,
+	striped: true,
+	loadMsg:"数据加载中...",
+	pagination: true,
+	rownumbers: true,
+	pageSize: 5,
+	singleSelect: true,
+	pageList: [2,5,10,20,30,40,50,100],
+	sortName: "tid",
+	remoteSort: false,
+	columns:[[
+		{field:'tid',title:'类型编号',width:100,align:'center', sortable:"true"},
+		{field:'tname',title:'类型名称',width:100,align:'center', editor:{type:"text", options:{required:true}}},
+	]],
+	toolbar: [{
+		iconCls: 'icon-add',
+		text:"添加",
+		handler: function() {
+			types_op = "add";
+			types_info = "添加";
+			
+			if (types_index != undefined) { // 说明正在被编辑的行
+				return;
+			}
+			//在表格的最前面插入一行
+			types_obj.datagrid('insertRow',{index: 0, row: {}});
+			types_index = 0;
+			types_obj.datagrid('beginEdit', types_index); // 开始编辑指定行
+		}
+	},'-',{
+        iconCls: 'icon-application-delete',
+        text: "删除",
+        handler: function() {
+            types_op = "del";
+            types_info = "删除";
+
+            //获取选中的行
+            var row = types_obj.datagrid('getSelected');
+            if (row == null) { //说明没有被选中的行
+                $.messager.show({title:'温馨提示', msg:'请选择您要删除的类型...', timeout:2000,showType:'slide'});
+                return;
+            }
+
+            //获取选中的行的索引
+            types_index = types_obj.datagrid('getRowIndex', row);
+            //console.log(row)
+
+            $.post("../../../delType", row, data=> {
+                if(data.code == 200) {
+                    $.messager.show({title:'成功提示', msg:'方案类型删除成功...', timeout:2000,showType:'slide'});
+                    //刷新页面数据
+                    types_obj.datagrid("reload"); //重新加载数据，目的是重新分页
+                }else{
+                    //如果没有成功，则需要回滚数据
+                    types_obj.datagrid("rejectChanges");
+                    $.messager.show({title:'失败提示', msg:'方案类型已被使用，请先删除绑定的方案...', timeout:2000,showType:'slide'});
+                }
+                row = null;
+                types_index = undefined;
+            }, "json");
+            row = null;
+            types_index = undefined;
+
+        }
+    },'-',{
+        iconCls: 'icon-edit',
+		text: "修改",
+		handler: function() {
+			types_op = "update";
+			types_info = "修改";
+			
+			//判断有没有正在被编辑的行
+			if (types_index != undefined) { //说明有正在被编辑的行
+				return
+			}
+			
+			//获取选中的行
+			var row = types_obj.datagrid('getSelected');
+			if (row == null) { //说明没有被选中的行
+				$.messager.show({title:'温馨提示', msg:'请选择您要修改的类型...', timeout:2000,showType:'slide'});
+			    return;
+			}
+			
+			//获取选中的行的索引
+			types_index = types_obj.datagrid('getRowIndex', row);
+			
+			//开启编辑
+			types_obj.datagrid('beginEdit', types_index);
+		}
+	},'-',{
+		iconCls: 'icon-save',
+		text: "保存",
+		handler: function() {
+            //如果没有被编辑的行，则直接返回
+            if (types_index == undefined) {
+                return;
+            }
+
+            types_obj.datagrid('endEdit', types_index); //先结束编辑
+            var row = types_obj.datagrid("getChanges")[0]; //这个是返回所有被修改的行数据，但是我们这里每次只允许编辑一行，所以我去第一行被修改的数据即可
+
+
+            //console.log(row)
+            if (row == undefined) {
+                types_index = undefined;
+                return;
+            }
+            //此时row是一个Object,那么js中如何在对象中添加属性呢？
+            //row.op = "add"; //row["op"] = "add"
+            row.op = types_op;
+            if (types_op == "add") {
+                $.post("../../../addType", row, data=> {
+                    if(data.code == 200) {
+                        $.messager.show({title:'成功提示', msg:'方案类型添加成功...', timeout:2000,showType:'slide'});
+                        //刷新页面数据
+                        types_obj.datagrid("reload"); //重新加载数据，目的是重新分页
+                    }else{
+                        //如果没有成功，则需要回滚数据
+                        types_obj.datagrid("rejectChanges");
+                        $.messager.show({title:'失败提示', msg:'方案类型添加失败...', timeout:2000,showType:'slide'});
+                    }
+                    row = null;
+                    types_index = undefined;
+                }, "json");
+                row = null;
+                types_index = undefined;
+            } else {
+                $.post("../../../updateType", row, data=> {
+                    if(data.code == 200) {
+                        $.messager.show({title:'成功提示', msg:'方案类型修改成功...', timeout:2000,showType:'slide'});
+                        //刷新页面数据
+                        types_obj.datagrid("reload"); //重新加载数据，目的是重新分页
+                    }else{
+                        //如果没有成功，则需要回滚数据
+                        types_obj.datagrid("rejectChanges");
+                        $.messager.show({title:'失败提示', msg:'该类型已被使用，修改失败...', timeout:2000,showType:'slide'});
+                    }
+                    row = null;
+                    types_index = undefined;
+                }, "json");
+
+                row = null;
+                types_index = undefined;
+            }
+        }
+	},'-',{
+		iconCls: 'icon-undo',
+		text: "撤销",
+		handler: function() {
+			types_index = undefined;
+			types_obj.datagrid("rejectChanges");
+			
+		}
+	}]
+});
+</script>

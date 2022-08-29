@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybaits.rog//DTD Config 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.lyy.eu.mapper.HistoryInfoMapper">
+    
+    <insert id="addHistory"  parameterType="com.lyy.eu.pojo.Histroyinfo">
+        insert into historyinfo values (0, #{mid}, #{gid}, now())
+    </insert>
+
+    <delete id="delHistory" parameterType="com.lyy.eu.pojo.Histroyinfo">
+        delete from historyinfo where mid = #{mid} and gid = #{gid}
+    </delete>
+
+    <select id="findHistoryStatus" parameterType="com.lyy.eu.pojo.Histroyinfo" resultType="com.lyy.eu.pojo.Histroyinfo">
+    select * from historyinfo where mid = #{mid} and gid = #{gid}
+    </select>
+
+    <select id="findHistory" parameterType="com.lyy.eu.pojo.PageInfo" resultType="com.lyy.eu.pojo.GoodsInfo">
+        select g.* from goodsinfo g,historyinfo h,memberinfo m
+        where g.gid=h.gid and m.mid=h.mid and m.mid=#{mid}
+        order by gid limit ${page}, ${rows}
+    </select>
+
+    <select id="findHistoryTotal" resultType="Integer" parameterType="com.lyy.eu.pojo.PageInfo">
+        select count(g.gid) from goodsinfo g,memberinfo m,historyinfo h where g.gid=h.gid and m.mid=h.mid and m.mid=#{mid}
+    </select>
+</mapper>

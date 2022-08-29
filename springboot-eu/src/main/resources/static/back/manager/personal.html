@@ -1,0 +1,61 @@
+<table id="goods_data" data-options="fit:true"></table>
+<table id="admin_data" data-options="fit:true"></table>
+<style>
+    #goods_form li {
+        list-style-type: none;
+        margin-top: 20px;
+        float: left;
+        width: 50%;
+    }
+
+    #goods_form .myli {
+        width: 100%;
+    }
+
+    #goods_form li> label {
+        width: 100px;
+        display: inline-block;;
+        text-align: right;
+    }
+
+    #show_goods_dialog_license {
+        border: 2px solid #ccc;
+        width: 400px;
+        height: 400px;
+        position: absolute;
+        top: 50px;
+        right: 50px;
+    }
+</style>
+
+<script type="text/javascript" src="../../ckeditor/ckeditor.js"></script>
+<script type="text/javascript" src="../js/addr.js"></script>
+<script type="text/javascript" src="../../js/vue.js"></script>
+<script type="text/javascript" src="../../js/axios.js"></script>
+<script type="text/javascript" src="../../js/qs.js"></script>
+<script>
+    var goods_obj;
+    goods_obj = $('#goods_data').datagrid({
+        url:'../../../findLoveAll',
+        fitColumns: true,
+        striped: true,
+        loadMsg: "数据加载中...",
+        pagination: true,
+        rownumbers: true,
+        //pageSize: 15,
+        singleSelect: true,
+        pageList: [10,15,20,30,40,50,100],
+        sortName: "lid",
+        remoteSort: false,
+        columns:[[
+            {field:'lid',title:'编号',width:100,align:'center', sortable:"true"},
+            {field:'gname',title:'方案名称',width:100,align:'center', sortable:"true",editor:{type:"text", options:{required:true}}},
+            {field:'nickName',title:'管理员名称',width:100,align:'center', sortable:"true",editor:{type:"text", options:{required:true}}},
+        ]],
+        toolbar: "#goods_search"
+    });
+
+
+</script>
+
+

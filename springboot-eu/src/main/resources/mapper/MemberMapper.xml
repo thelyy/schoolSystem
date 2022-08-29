@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybaits.rog//DTD Config 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.lyy.eu.mapper.MemberMapper">
+    <select id="loginMember" parameterType="com.lyy.eu.pojo.Member" resultType="com.lyy.eu.pojo.Member">
+        select mid, email, pwd, nickName from `vue-elementui`.memberinfo where email= #{email} and pwd=#{pwd} and status=1;
+    </select>
+
+    <insert id="regMember" parameterType="com.lyy.eu.pojo.Member">
+        insert into `vue-elementui`.memberinfo (nickName, pwd, tel, email, photo)
+        values (#{nickName},#{pwd},#{tel},#{email},#{photo});
+    </insert>
+
+    <select id="findemail" parameterType="com.lyy.eu.pojo.Member" resultType="com.lyy.eu.pojo.Member">
+        SELECT email FROM `vue-elementui`.memberinfo WHERE email = #{email}
+    </select>
+
+    <select id="findUserByMember" parameterType="com.lyy.eu.pojo.Member" resultType="com.lyy.eu.pojo.Member">
+        select * from memberinfo where mid = #{mid}
+    </select>
+
+    <select id="findMemberSend" resultType="com.lyy.eu.pojo.Member" parameterType="com.lyy.eu.pojo.PageInfo">
+        select * from memberinfo order by mid limit ${page}, ${rows}
+    </select>
+
+    <select id="findTotal" resultType="Integer" parameterType="com.lyy.eu.pojo.PageInfo">
+        select count(1) from memberinfo
+    </select>
+
+    <delete id="delMember" parameterType="com.lyy.eu.pojo.Member">
+        delete from memberinfo where mid=#{mid} and status=0;
+    </delete>
+
+    <update id="updateMember" parameterType="com.lyy.eu.pojo.Member">
+        update memberinfo set status = #{status} where mid=#{mid}
+    </update>
+
+    <update id="updateMemberInfo" parameterType="com.lyy.eu.pojo.Member">
+        update memberinfo set tel = #{tel}, nickName = #{nickName} where mid=#{mid}
+    </update>
+
+    <update id="updateHeadImg" parameterType="com.lyy.eu.pojo.Member">
+        update memberinfo set photo = #{photo} where mid=#{mid}
+    </update>
+
+    <update id="updatepwd" parameterType="com.lyy.eu.pojo.Member">
+        update memberinfo set pwd = #{pwd} where email=#{email}
+    </update>
+
+</mapper>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
