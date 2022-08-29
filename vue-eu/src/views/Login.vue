@@ -68,7 +68,6 @@
             }else{
               alert("登录失败！")
             }
-
         })
       },
       updatepwd(){
