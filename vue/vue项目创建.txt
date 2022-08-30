@@ -1,7 +1,0 @@
-1.vue init webpack  vue-eu
-2.cd vue-eu
-3.npm install vue-router --save-dev
-4.npm i element-ui -S
-5.npm install
-6.cnpm install sass-loader node-sass --save-dev
-运行  npm run dev
